@@ -1,22 +1,23 @@
-// "use client";
-// import { useTRPC } from "@/trpc/client";
-import { caller } from "@/trpc/server";
-import { useQuery } from "@tanstack/react-query";
+"use client";
 
-export default async function Home() {
+import { Button } from "@/components/ui/button";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
-  //FOR CLIENT SIDE
-  // const trpc = useTRPC();
-  // const { data } = useQuery(trpc.hello.queryOptions({ text: "Shubham!" }));
-  // const greeting = JSON.stringify(data?.greeting);
-
-  //FOR SERVER SIDE
-  const data = await caller.hello({ text: "Shubham!" });
-  const greeting = JSON.stringify(data?.greeting);
-
+export default function Home() {
+  const trpc = useTRPC();
+  const invoke = useMutation(trpc.invoke.mutationOptions({}));
   return (
-    <div>
-      <h1>{greeting}</h1>
+    <div className="p-4 max-w-7xl mx-auto">
+      <Button
+        onClick={() =>
+          invoke.mutate({
+            text: "Test2",
+          })
+        }
+      >
+        Invoke background job
+      </Button>
     </div>
   );
 }
