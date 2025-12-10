@@ -1,0 +1,17 @@
+# This is a config for E2B sandbox template.
+# You can use template ID (e92ukgtm0g3t6ihmb9ct) or template name (buildlyio-nextjs-test) to create a sandbox:
+
+# Python SDK
+# from e2b import Sandbox, AsyncSandbox
+# sandbox = Sandbox.create("buildlyio-nextjs-test") # Sync sandbox
+# sandbox = await AsyncSandbox.create("buildlyio-nextjs-test") # Async sandbox
+
+# JS SDK
+# import { Sandbox } from 'e2b'
+# const sandbox = await Sandbox.create('buildlyio-nextjs-test')
+
+team_id = "7804e792-581d-4550-ac4a-5dcb8380abd0"
+start_cmd = "/compile_page.sh"
+dockerfile = "e2b.Dockerfile"
+template_name = "buildlyio-nextjs-test"
+template_id = "e92ukgtm0g3t6ihmb9ct"
