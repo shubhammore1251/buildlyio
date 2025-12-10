@@ -4,6 +4,7 @@ import {
   createAgent,
   createTool,
   createNetwork,
+  openai,
 } from "@inngest/agent-kit";
 import { Sandbox } from "@e2b/code-interpreter";
 import { getSandbox, lastAssistantTextMessageContent } from "./utlis";
@@ -14,22 +15,31 @@ export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
   { event: "test/hello.world" },
   async ({ event, step }) => {
-
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("buildlyio-nextjs-test");
       return sandbox.sandboxId;
     });
     
+    //To Do: In user profile we will link his open ai key if he has addded and if addedd then we
+    // will conditionally pass that specific object which has model name and other part in openai function
     const codeAgent = createAgent({
       name: "code-agent",
       description: "An expert coding agent",
       system: PROMPT,
-      model: gemini({
-        model: "gemini-2.5-flash",
+      // model: gemini({
+      //   model: "gemini-2.5-flash",
+      //   defaultParameters: {
+      //     generationConfig: {
+      //       temperature: 0.1,
+      //     },
+      //   },
+      // }),
+      model: openai({
+        model: "openai/gpt-4o",
+        baseUrl: "https://openrouter.ai/api/v1",
         defaultParameters: {
-          generationConfig: {
-            temperature: 0.1,
-          },
+          temperature: 0.1,
+          max_completion_tokens: 2048,
         },
       }),
       tools: [
@@ -142,7 +152,7 @@ export const helloWorld = inngest.createFunction(
     const network = createNetwork({
       name: "codeing-agent-network",
       agents: [codeAgent],
-      maxIter: 4,
+      maxIter: 15,
       router: async ({ network }) => {
         const summary = network.state.data.summary;
 
