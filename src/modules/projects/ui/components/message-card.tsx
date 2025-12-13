@@ -1,23 +1,10 @@
 import { Card } from "@/components/ui/card";
+import { Fragment, MessageRole, MessageType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ChevronRightIcon, Code2Icon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
-
-export type MessageRole = "USER" | "ASSISTANT";
-
-export type MessageType = "RESULT" | "ERROR";
-
-export interface Fragment {
-  id: string;
-  messageId: string;
-  sandboxUrl: string;
-  title: string;
-  files: any;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 interface MessageCardProps {
   content: string;
