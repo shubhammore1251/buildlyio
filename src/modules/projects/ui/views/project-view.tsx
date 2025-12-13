@@ -10,6 +10,7 @@ import {
 import MessageContainer from "../components/message-container";
 import { Fragment } from "@/lib/types";
 import ProjectHeader from "../components/project-header";
+import FragmentWeb from "../components/fragment-web";
 
 interface Props {
   projectId: string;
@@ -46,9 +47,9 @@ const ProjectView = ({ projectId }: Props) => {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={65} minSize={50}>
-          <div className="flex h-[200px] items-center justify-center p-6">
-            <span className="font-semibold">Projects</span>
-          </div>
+          {
+            !!activeFragment && <FragmentWeb data={activeFragment} />
+          }
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
