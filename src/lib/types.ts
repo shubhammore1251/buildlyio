@@ -11,3 +11,5 @@ export interface Fragment {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type TreeItem = string | [string, ...TreeItem[]];
