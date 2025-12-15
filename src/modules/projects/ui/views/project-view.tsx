@@ -18,12 +18,15 @@ import Link from "next/link";
 import CodeView from "@/components/code-view";
 import FileExplorer from "@/components/file-explorer";
 import UserControl from "@/components/user-control";
+import { useAuth } from "@clerk/nextjs";
 
 interface Props {
   projectId: string;
 }
 
 const ProjectView = ({ projectId }: Props) => {
+  const { has } = useAuth();
+  const hasProPlan = has?.({ plan: "pro" });
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
   const [tabState, setTabState] = useState<"code" | "preview">("preview");
   //   const trpc = useTRPC();
@@ -52,8 +55,8 @@ const ProjectView = ({ projectId }: Props) => {
               setActiveFragment={setActiveFragment}
             />
           </Suspense>
-        </ResizablePanel >
-        <ResizableHandle className="hover:bg-primary transition-colors"/>
+        </ResizablePanel>
+        <ResizableHandle className="hover:bg-primary transition-colors" />
         <ResizablePanel defaultSize={65} minSize={50}>
           <Tabs
             className="h-full gap-y-0"
@@ -71,11 +74,13 @@ const ProjectView = ({ projectId }: Props) => {
                 </TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-x-2">
-                <Button asChild size="sm" variant="tertiary">
-                  <Link href="/pricing">
-                    <CrownIcon /> <span>Upgrade</span>
-                  </Link>
-                </Button>
+                {!hasProPlan && (
+                  <Button asChild size="sm" variant="tertiary">
+                    <Link href="/pricing">
+                      <CrownIcon /> <span>Upgrade</span>
+                    </Link>
+                  </Button>
+                )}
                 <UserControl />
               </div>
             </div>

@@ -8,8 +8,10 @@ import TextareaAutosize from "react-textarea-autosize";
 import { Button } from "@/components/ui/button";
 import { ArrowUpIcon, Loader2Icon } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import Usage from "./usage";
+import { useRouter } from "next/navigation";
 
 interface Props {
   projectId: string;
@@ -23,9 +25,12 @@ const formSchema = z.object({
 
 export const MessageForm = ({ projectId }: Props) => {
   const trpc = useTRPC();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isFocused, setIsFocused] = useState(false);
-  const showUsage = false;
+  const { data: usage } = useQuery(trpc.usages.status.queryOptions());
+  const showUsage = !!usage;
+
   const formState = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -40,13 +45,17 @@ export const MessageForm = ({ projectId }: Props) => {
         queryClient.invalidateQueries(
           trpc.messages.getMany.queryOptions({ projectId })
         );
-
-        // TODO: Invalidate usage status
+        queryClient.invalidateQueries(
+          trpc.usages.status.queryOptions()
+        );
       },
       onError: (error) => {
-        // TODO: Redirect to pricing page if specific error
         console.log(error);
         toast.error(error?.message);
+
+        if (error.data?.code === "TOO_MANY_REQUESTS") {
+          router.push("/pricing");
+        }
       },
     })
   );
@@ -63,6 +72,7 @@ export const MessageForm = ({ projectId }: Props) => {
 
   return (
     <Form {...formState}>
+      {showUsage && <Usage points={usage.remainingPoints} msBeforeNext={usage.msBeforeNext} />}
       <form
         onSubmit={formState.handleSubmit(onSubmit)}
         noValidate

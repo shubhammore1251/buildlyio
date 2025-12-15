@@ -6,6 +6,7 @@
 
 body {
   font-family: var(--font-montserrat), system-ui, sans-serif !important;
+  scroll-behavior: smooth !important;
 }
 
 @theme inline {
