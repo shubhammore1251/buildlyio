@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PROJECT_TEMPLATES } from "@/lib/constant";
+import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
   value: z.string().min(1, { message: "Value is required" }).max(10000, {
@@ -23,6 +24,7 @@ const formSchema = z.object({
 export const ProjectForm = () => {
   const router = useRouter();
   const trpc = useTRPC();
+  const clerk = useClerk();
   const queryClient = useQueryClient();
   const [isFocused, setIsFocused] = useState(false);
   const formState = useForm<z.infer<typeof formSchema>>({
@@ -41,9 +43,14 @@ export const ProjectForm = () => {
         // TODO: Invalidate usage status
       },
       onError: (error) => {
-        // TODO: Redirect to pricing page if specific error
         console.log(error);
         toast.error(error?.message);
+
+        if (error?.data?.code === "UNAUTHORIZED") {
+          clerk.openSignIn();
+        }
+
+        // TODO: Redirect to pricing page if specific error
       },
     })
   );
@@ -57,14 +64,13 @@ export const ProjectForm = () => {
   const isPending = createProject.isPending;
   const isButtonDisabled = isPending || !formState.formState.isValid;
 
-
   const onSelect = (value: string) => {
     formState.setValue("value", value, {
       shouldDirty: true,
       shouldValidate: true,
       shouldTouch: true,
     });
-  }
+  };
 
   return (
     <Form {...formState}>
@@ -127,21 +133,21 @@ export const ProjectForm = () => {
             </Button>
           </div>
         </form>
-     
-      <div className="flex-wrap justify-center gap-2 hidden md:flex max-w-3xl">
-        {PROJECT_TEMPLATES.map((template) => (
-          <Button
-            key={template.title}
-            variant="outline"
-            size="sm"
-            className="bg-white dark:bg-sidebar"
-            onClick={() => onSelect(template.prompt)}
-          >
-            {template.emoji} {template.title}
-          </Button>
-        ))}
-      </div>
-       </section>
+
+        <div className="flex-wrap justify-center gap-2 hidden md:flex max-w-3xl">
+          {PROJECT_TEMPLATES.map((template) => (
+            <Button
+              key={template.title}
+              variant="outline"
+              size="sm"
+              className="bg-white dark:bg-sidebar"
+              onClick={() => onSelect(template.prompt)}
+            >
+              {template.emoji} {template.title}
+            </Button>
+          ))}
+        </div>
+      </section>
     </Form>
   );
 };
