@@ -1,10 +1,11 @@
 import { ProjectForm } from "@/modules/home/ui/components/project-form";
+import ProjectList from "@/modules/home/ui/components/projects-list";
 import Image from "next/image";
 
 const Page = () => {
   return (
     <div className="flex flex-col max-w-5xl mx-auto w-full">
-      <section className="space-y-8 py-[16vh] 2xl:py-48">
+      <section className="space-y-8 py-[16vh] 2xl:py-28">
         <div className="flex flex-col items-center">
           <Image
             src="/logo.svg"
@@ -26,6 +27,9 @@ const Page = () => {
         <div className="max-w-3xl mx-auto w-full">
           <ProjectForm />
         </div>
+      </section>
+      <section>
+        <ProjectList />
       </section>
     </div>
   );

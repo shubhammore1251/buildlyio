@@ -18,7 +18,6 @@ interface AgentState {
   files: { [path: string]: string };
 }
 
-
 const MAX_SAFE_TOKENS = 1000;
 
 export const codeAgentFunction = inngest.createFunction(
@@ -36,16 +35,10 @@ export const codeAgentFunction = inngest.createFunction(
       name: "code-agent",
       description: "An expert coding agent",
       system: PROMPT,
-      // model: gemini({
-      //   model: "gemini-2.5-flash",
-      //   defaultParameters: {
-      //     generationConfig: {
-      //       temperature: 0.1,
-      //     },
-      //   },
-      // }),
       model: openai({
-        model: "openai/gpt-4o",
+        model: "gpt-4o",
+        // defaultParameters: { temperature: 0.5 },
+        // model: "gpt-oss-120b",
         baseUrl: "https://openrouter.ai/api/v1",
         defaultParameters: {
           temperature: 0.1,
@@ -95,7 +88,10 @@ export const codeAgentFunction = inngest.createFunction(
               })
             ),
           }),
-          handler: async ({ files }, { step, network } : Tool.Options<AgentState>) => {
+          handler: async (
+            { files },
+            { step, network }: Tool.Options<AgentState>
+          ) => {
             const newFiles = await step?.run(
               "createOrUpdateFiles",
               async () => {
@@ -176,7 +172,9 @@ export const codeAgentFunction = inngest.createFunction(
 
     const result = await network.run(event.data.value);
 
-    const isError = !result.state.data.summary  || Object.keys(result.state.data.files || {}).length === 0;
+    const isError =
+      !result.state.data.summary ||
+      Object.keys(result.state.data.files || {}).length === 0;
 
     const sandboxUrl = await step.run("get-sandbox-url", async () => {
       const sandbox = await getSandbox(sandboxId);
@@ -185,7 +183,6 @@ export const codeAgentFunction = inngest.createFunction(
     });
 
     await step.run("savce-result", async () => {
-
       if (isError) {
         return await prisma.message.create({
           data: {
@@ -209,7 +206,7 @@ export const codeAgentFunction = inngest.createFunction(
               title: "Fragment",
               files: result.state.data.files,
             },
-          }
+          },
         },
       });
     });
@@ -222,3 +219,215 @@ export const codeAgentFunction = inngest.createFunction(
     };
   }
 );
+
+// import { inngest } from "./client";
+// import { createAgent, createTool, openai } from "@inngest/agent-kit";
+// import { Sandbox } from "@e2b/code-interpreter";
+// import { getSandbox, lastAssistantTextMessageContent } from "./utlis";
+// import z from "zod";
+// import { PROMPT } from "@/prompt";
+// import { prisma } from "@/lib/prisma";
+
+// /* ---------------- TYPES ---------------- */
+
+// interface PlanResult {
+//   files: string[];
+//   needsDependencies: boolean;
+// }
+
+// const modelParams = {
+//   model: "gpt-4o",
+//   baseUrl: "https://openrouter.ai/api/v1",
+// }
+
+// /* ---------------- PLANNER ---------------- */
+
+// const plannerAgent = createAgent({
+//   name: "planner",
+//   system: `
+//     You are a planning agent.
+
+//     Analyze the user request and return ONLY valid JSON.
+//     Do NOT write code.
+//     Do NOT explain.
+
+//     Schema:
+//     {
+//       "files": string[],
+//       "needsDependencies": boolean
+//     }
+//   `,
+//   model: openai({
+//     ...modelParams,
+//     defaultParameters: {
+//       temperature: 0,
+//       max_completion_tokens: 200,
+//     },
+//   }),
+// });
+
+// /* ---------------- FUNCTION ---------------- */
+
+// export const codeAgentFunction = inngest.createFunction(
+//   { id: "code-agent" },
+//   { event: "code-agent/run" },
+//   async ({ event, step }) => {
+//     /* ---------- Sandbox ---------- */
+//     const sandboxId = await step.run("get-sandbox-id", async () => {
+//       const sandbox = await Sandbox.create("buildlyio-nextjs-test");
+//       return sandbox.sandboxId;
+//     });
+
+//     /* ---------- Planner ---------- */
+//     const planResult = await plannerAgent.run(event.data.value);
+
+//     // ✅ Now this works, types are correct
+//     const planText = lastAssistantTextMessageContent(planResult);
+
+//     if (!planText) {
+//       throw new Error("Planner returned no output");
+//     }
+
+//     const plan: PlanResult = JSON.parse(planText);
+//     /* ---------- File Store ---------- */
+//     const generatedFiles: Record<string, string> = {};
+
+//     /* ---------- Executor ---------- */
+//     const executorAgent = createAgent({
+//       name: "executor",
+//       system: `
+//         ${PROMPT}
+
+//         You will receive a plan.
+//         Follow it strictly.
+//         Do NOT re-plan.
+//       `,
+//       model: openai({
+//         ...modelParams,
+//         defaultParameters: {
+//           temperature: 0.1,
+//           max_completion_tokens: 800,
+//         },
+//       }),
+//       tools: [
+//         createTool({
+//           name: "terminal",
+//           description: "Run shell commands",
+//           parameters: z.object({
+//             command: z.string(),
+//           }),
+//           handler: async ({ command }) => {
+//             const sandbox = await getSandbox(sandboxId);
+//             const result = await sandbox.commands.run(command);
+//             return result.stdout;
+//           },
+//         }),
+//         createTool({
+//           name: "createOrUpdateFiles",
+//           description: "Create or update files",
+//           parameters: z.object({
+//             files: z.array(
+//               z.object({
+//                 path: z.string(),
+//                 content: z.string(),
+//               })
+//             ),
+//           }),
+//           handler: async ({ files }) => {
+//             const sandbox = await getSandbox(sandboxId);
+//             for (const file of files) {
+//               await sandbox.files.write(file.path, file.content);
+//               generatedFiles[file.path] = file.content;
+//             }
+//           },
+//         }),
+//         createTool({
+//           name: "readFiles",
+//           description: "Read files",
+//           parameters: z.object({
+//             files: z.array(z.string()),
+//           }),
+//           handler: async ({ files }) => {
+//             const sandbox = await getSandbox(sandboxId);
+//             const contents = [];
+//             for (const file of files) {
+//               const content = await sandbox.files.read(file);
+//               contents.push({ path: file, content });
+//             }
+//             return JSON.stringify(contents);
+//           },
+//         }),
+//       ],
+//     });
+
+//     /* ---------- Execute ---------- */
+//     const execPrompt = `
+//       USER REQUEST:
+//       ${event.data.value}
+
+//       PLAN:
+//       ${JSON.stringify(plan, null, 2)}
+//     `;
+
+//     // ✅ CALL AGENT DIRECTLY
+//     const execResult = await executorAgent.run(execPrompt);
+
+//     // ✅ NOW TYPE IS AgentResult
+//     const execText = lastAssistantTextMessageContent(execResult);
+//     if (!execText) {
+//       throw new Error("Executor returned no output");
+//     }
+
+//     const summaryMatch = execText.match(
+//       /<task_summary>([\s\S]*?)<\/task_summary>/
+//     );
+
+//     const summary = summaryMatch?.[1]?.trim();
+//     const files = generatedFiles;
+
+//     const isError = !summary || Object.keys(files).length === 0;
+
+//     /* ---------- Sandbox URL ---------- */
+//     const sandboxUrl = await step.run("get-sandbox-url", async () => {
+//       const sandbox = await getSandbox(sandboxId);
+//       return `https://${sandbox.getHost(3000)}`;
+//     });
+
+//     /* ---------- Persist ---------- */
+//     await step.run("save-result", async () => {
+//       if (isError) {
+//         return prisma.message.create({
+//           data: {
+//             projectId: event.data.projectId,
+//             content: "Something went wrong. Please try again.",
+//             role: "ASSISTANT",
+//             type: "ERROR",
+//           },
+//         });
+//       }
+
+//       return prisma.message.create({
+//         data: {
+//           projectId: event.data.projectId,
+//           content: summary!,
+//           role: "ASSISTANT",
+//           type: "RESULT",
+//           fragment: {
+//             create: {
+//               sandboxUrl,
+//               title: "Fragment",
+//               files,
+//             },
+//           },
+//         },
+//       });
+//     });
+
+//     return {
+//       url: sandboxUrl,
+//       title: "Fragment",
+//       files,
+//       summary,
+//     };
+//   }
+// );
