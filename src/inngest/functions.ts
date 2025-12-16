@@ -14,6 +14,7 @@ import { getSandbox, lastAssistantTextMessageContent } from "./utlis";
 import z from "zod";
 import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { prisma } from "@/lib/prisma";
+import { SANBOX_TIMEOUT } from "@/lib/constant";
 
 interface AgentState {
   summary: string;
@@ -28,6 +29,7 @@ export const codeAgentFunction = inngest.createFunction(
   async ({ event, step }) => {
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("buildlyio-nextjs-test");
+      await sandbox.setTimeout(SANBOX_TIMEOUT);
       return sandbox.sandboxId;
     });
 
@@ -42,6 +44,7 @@ export const codeAgentFunction = inngest.createFunction(
           orderBy: {
             createdAt: "desc",
           },
+          take: 5,
         });
 
         for (const message of messages) {
@@ -52,7 +55,7 @@ export const codeAgentFunction = inngest.createFunction(
           });
         }
 
-        return formattedMessages;
+        return formattedMessages.reverse();
       }
     );
 
@@ -246,7 +249,7 @@ export const codeAgentFunction = inngest.createFunction(
     const { output: responseOutput } = await responseGenerator.run(
       result.state.data.summary
     );
-    
+
     const generateFragmentTitle = () => {
       if (fragmentTitleOutput[0].type !== "text") {
         return "Fragment";
@@ -254,19 +257,19 @@ export const codeAgentFunction = inngest.createFunction(
 
       if (Array.isArray(fragmentTitleOutput[0].content)) {
         return fragmentTitleOutput[0].content.map((txt) => txt).join(" ");
-      }else{
+      } else {
         return fragmentTitleOutput[0].content;
       }
     };
 
     const generateResponse = () => {
       if (responseOutput[0].type !== "text") {
-        return "Here you go!";  
+        return "Here you go!";
       }
 
       if (Array.isArray(responseOutput[0].content)) {
         return responseOutput[0].content.map((txt) => txt).join(" ");
-      }else{
+      } else {
         return responseOutput[0].content;
       }
     };
