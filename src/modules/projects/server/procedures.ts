@@ -30,7 +30,7 @@ export const projectsRouter = createTRPCRouter({
 
       return existingProject;
     }),
-  getMany: protectedProcedure.query(async ({ input, ctx }) => {
+  getMany: protectedProcedure.query(async ({ ctx }) => {
     const messages = await prisma.project.findMany({
       where: {
         userId: ctx.auth.userId,

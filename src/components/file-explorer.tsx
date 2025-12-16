@@ -1,4 +1,3 @@
-import path from "path";
 import React, { Fragment, useCallback, useMemo, useState } from "react";
 import {
   ResizableHandle,
@@ -151,7 +150,7 @@ const FileExplorer = ({ files }: FileExplorerProps) => {
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
-            Select a file to view it's contents.
+            Select a file to view it&apos;s contents.
           </div>
         )}
       </ResizablePanel>

@@ -52,7 +52,7 @@ const MessageContainer = ({
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="pt-2 pr-1">
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <MessageCard
               key={message.id}
               content={message.content}

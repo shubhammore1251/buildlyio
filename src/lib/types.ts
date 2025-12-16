@@ -7,6 +7,7 @@ export interface Fragment {
   messageId: string;
   sandboxUrl: string;
   title: string;
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   files: any;
   createdAt: Date;
   updatedAt: Date;

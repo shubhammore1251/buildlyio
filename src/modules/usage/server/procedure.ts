@@ -7,6 +7,7 @@ status: protectedProcedure.query(async () => {
         const result = await getUsageStatus();
         return result;
     }catch(err){
+        console.log("Error getting usage status", err);
         return null;
     }
   }),

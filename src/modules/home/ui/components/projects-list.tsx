@@ -19,7 +19,7 @@ const ProjectList = () => {
 
   return (
     <div className="w-full bg-white dark:bg-sidebar rounded-xl p-8 border ex flex-col gap-y-6 sm:gap-y-4">
-      <h2 className="text-2xl font-semibold">{user?.firstName}'s Builds</h2>
+      <h2 className="text-2xl font-semibold">{user?.firstName}&apos;s Builds</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
         {projects?.length === 0 && (
           <div className="col-span-full text-center">

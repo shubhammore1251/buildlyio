@@ -14,7 +14,7 @@ const messages = [
 ];
 
 const MessageLoadingText = () => {
-    const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,6 +22,7 @@ const MessageLoadingText = () => {
     }, 1000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);
 
   return (
@@ -31,27 +32,27 @@ const MessageLoadingText = () => {
       </span>
     </div>
   );
-}
+};
 
 const MessageLoading = () => {
-  return(
+  return (
     <div className="flex flex-col group px-2 pb-4">
-        <div className="flex items-center gap-2 pl-2 mb-2">
-           <Image 
-              src="/logo.svg"
-              alt="BuildlyIO"
-              width={22}
-              height={22}
-              className="shrink-0"
-            />
+      <div className="flex items-center gap-2 pl-2 mb-2">
+        <Image
+          src="/logo.svg"
+          alt="BuildlyIO"
+          width={22}
+          height={22}
+          className="shrink-0"
+        />
 
-            <span className="text-sm font-medium">Buildly</span>
-        </div>
-        <div className="pl-8.5 flex flex-col gap-y-4">
-            <MessageLoadingText/>
-        </div>
+        <span className="text-sm font-medium">Buildly</span>
+      </div>
+      <div className="pl-8.5 flex flex-col gap-y-4">
+        <MessageLoadingText />
+      </div>
     </div>
-  )
+  );
 };
 
 export default MessageLoading;
