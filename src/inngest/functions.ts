@@ -14,7 +14,7 @@ import z from "zod";
 import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { prisma } from "@/lib/prisma";
 import { SANBOX_TIMEOUT } from "@/lib/constant";
-import { resolveApiKey } from "@/lib/utils";
+import { resolveApiKey } from "@/lib/utils.server";
 
 interface AgentState {
   summary: string;
@@ -61,6 +61,7 @@ export const codeAgentFunction = inngest.createFunction(
   { event: "code-agent/run" },
   async ({ event, step }) => {
     const { provider, apiKey } = await resolveApiKey(event.data.userId);
+    console.log(provider, apiKey);
 
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("buildlyio-nextjs-test");

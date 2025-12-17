@@ -5,7 +5,6 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 
 export const apiKeysRouter = createTRPCRouter({
-
   // 🔹 GET STATUS (demo vs byok)
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const key = await prisma.apiKey.findFirst({
@@ -18,7 +17,7 @@ export const apiKeysRouter = createTRPCRouter({
 
     return {
       mode: key ? "BYOK" : "DEMO",
-    };
+    } satisfies { mode: "DEMO" | "BYOK" };
   }),
 
   // 🔹 GET METADATA (NO KEY VALUE EVER)
@@ -43,16 +42,11 @@ export const apiKeysRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        apiKey: z.string().min(255),
+        apiKey: z.string().min(50),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const encryptedKey = encrypt(input.apiKey);
-
-      await prisma.apiKey.updateMany({
-        where: { userId: ctx.auth.userId },
-        data: { isActive: false },
-      });
 
       await prisma.apiKey.create({
         data: {
@@ -79,7 +73,7 @@ export const apiKeysRouter = createTRPCRouter({
         where: {
           userId: ctx.auth.userId,
           scope: "BYOK",
-          isActive: true,
+          is_active: true,
         },
       });
 
@@ -93,7 +87,7 @@ export const apiKeysRouter = createTRPCRouter({
       await prisma.apiKey.update({
         where: { id: existing.id },
         data: {
-          encryptedKey: encrypt(input.apiKey),
+          encrypted_key: encrypt(input.apiKey),
         },
       });
 
