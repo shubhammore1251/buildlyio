@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { type TreeItem } from "./types";
+import { prisma } from "@/lib/prisma";
+import { decrypt } from "./crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -77,4 +79,41 @@ export function convertFilesToTreeItems(
 
   const result = convertNode(tree);
   return Array.isArray(result) ? result : [result];
+}
+
+
+export async function resolveApiKey(userId?: string) {
+  if (userId) {
+    const userKey = await prisma.apiKey.findFirst({
+      where: {
+        userId,
+        scope: "BYOK",
+        is_active: true,
+      },
+    });
+
+    if (userKey) {
+      return {
+        provider: "OPENAI" as const,
+        apiKey: decrypt(userKey.encrypted_key),
+      };
+    }
+  }
+
+  const adminKey = await prisma.apiKey.findFirst({
+    where: {
+      userId: null,
+      scope: "DEMO",
+      is_active: true,
+    },
+  });
+
+  if (!adminKey) {
+    throw new Error("Admin API key missing");
+  }
+
+  return {
+    provider: "openrouter" as const,
+    apiKey: decrypt(adminKey.encrypted_key),
+  };
 }
