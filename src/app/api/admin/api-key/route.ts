@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
   const { adminSecret, apiKey } = body;
 
-  console.log(adminSecret, process.env.ADMIN_SECRET, adminSecret === process.env.ADMIN_SECRET);
+  // console.log(adminSecret, process.env.ADMIN_SECRET, adminSecret === process.env.ADMIN_SECRET);
 
   if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
     return NextResponse.json(

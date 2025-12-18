@@ -10,7 +10,7 @@ interface Props {
 }
 
 const UserControl = ({ showName }: Props) => {
-    const currentTheme =  useCurrentTheme();
+  const currentTheme = useCurrentTheme();
   return (
     <UserButton
       showName={showName}
@@ -19,6 +19,7 @@ const UserControl = ({ showName }: Props) => {
           userButtonBox: "rounded-md!",
           userButtonAvatarBox: "rounded-md! size-8!",
           userButtonTrigger: "rounded-md!",
+          
         },
         baseTheme: currentTheme === "dark" ? dark : undefined,
       }}

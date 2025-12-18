@@ -54,15 +54,51 @@ export const messagesRouter = createTRPCRouter({
         });
       }
 
+      // try {
+      //   await consumeCredits();
+      // } catch (error) {
+      //   if (error instanceof Error) {
+      //     throw new TRPCError({
+      //       code: "BAD_REQUEST",
+      //       message: "Something went wrong!",
+      //     });
+      //   }else{
+      //     throw new TRPCError({
+      //       code: "TOO_MANY_REQUESTS",
+      //       message: "You have run out of credits.",
+      //     });
+      //   }
+      // }
+
       try {
-        await consumeCredits();
+        // 1️⃣ check if user has BYOK
+        const userKey = await prisma.apiKey.findFirst({
+          where: {
+            userId: ctx.auth.userId,
+            scope: "BYOK",
+            is_active: true,
+          },
+        });
+
+        // 2️⃣ only consume credits if DEMO
+        if (!userKey) {
+          try {
+            await consumeCredits();
+          } catch (error) {
+            throw new TRPCError({
+              code: "TOO_MANY_REQUESTS",
+              message:
+                "Demo credits exhausted. Add your own API key for unlimited usage.",
+            });
+          }
+        }
       } catch (error) {
         if (error instanceof Error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Something went wrong!",
           });
-        }else{
+        } else {
           throw new TRPCError({
             code: "TOO_MANY_REQUESTS",
             message: "You have run out of credits.",

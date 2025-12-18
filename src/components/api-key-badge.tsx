@@ -12,7 +12,7 @@ export function ApiKeyBadge({
   return (
     <Badge
       onClick={onClick}
-      className={`cursor-pointer ${mode === "BYOK" ? "bg-primary/80" : "bg-gray-400"} font-bold`}
+      className={`cursor-pointer ${mode === "BYOK" ? "bg-primary/80" : "bg-gray-400 dark:bg-primary/50"} font-bold`}
       variant={"default"}
     >
       {mode === "BYOK" ? "BYOK Active" : "Demo Mode"}

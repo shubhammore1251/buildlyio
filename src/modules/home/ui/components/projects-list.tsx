@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/trpc/client";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
@@ -10,8 +11,10 @@ import React from "react";
 
 const ProjectList = () => {
   const trpc = useTRPC();
-  const {user } = useUser();
-  const { data: projects } = useQuery(trpc.projects.getMany.queryOptions());
+  const { user } = useUser();
+  const { data: projects, isLoading } = useQuery(
+    trpc.projects.getMany.queryOptions()
+  );
 
   if (!user) {
     return null;
@@ -19,41 +22,60 @@ const ProjectList = () => {
 
   return (
     <div className="w-full bg-white dark:bg-sidebar rounded-xl p-8 border ex flex-col gap-y-6 sm:gap-y-4">
-      <h2 className="text-2xl font-semibold">{user?.firstName}&apos;s Builds</h2>
+      <h2 className="text-2xl font-semibold">
+        {user?.firstName}&apos;s Builds
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
-        {projects?.length === 0 && (
+        {isLoading && (
+          <>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="border rounded-lg p-4 flex items-center gap-x-4"
+              >
+                <Skeleton className="h-10 w-10 rounded-md" />
+                <div className="flex flex-col gap-2 w-full">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        {!isLoading && projects?.length === 0 && (
           <div className="col-span-full text-center">
             <p className="text-sm text-muted-foreground">No projects found.</p>
           </div>
         )}
-        {projects?.map((project) => (
-          <Button
-            key={project.id}
-            variant="outline"
-            className="font-normal h-auto justify-start w-full text-start p-4"
-            asChild
-          >
-            <Link href={`/projects/${project.id}`}>
-              <div className="flex items-center gap-x-4">
-                <Image
-                  src="/logo.svg"
-                  alt="BuildlyIO"
-                  width={40}
-                  height={40}
-                  className="object-contain"
-                />
-                <div className="flex flex-col">
-                  <h3 className="truncate font-medium">{project.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(project.updatedAt, {
+        {!isLoading &&
+          projects?.map((project) => (
+            <Button
+              key={project.id}
+              variant="outline"
+              className="font-normal h-auto justify-start w-full text-start p-4"
+              asChild
+            >
+              <Link href={`/projects/${project.id}`}>
+                <div className="flex items-center gap-x-4">
+                  <Image
+                    src="/logo.svg"
+                    alt="BuildlyIO"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                  <div className="flex flex-col">
+                    <h3 className="truncate font-medium">{project.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(project.updatedAt, {
                         addSuffix: true,
-                    })}
-                  </p>
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          </Button>
-        ))}
+              </Link>
+            </Button>
+          ))}
       </div>
     </div>
   );
