@@ -9,8 +9,26 @@ const GENERATION_COST = 1;
 
 export async function getUsageTracker() {
 
-  const {has} = await auth();
-  const hasProPlan = has({plan: "pro"})
+  const { userId, has } = await auth();
+
+  // 1️⃣ If user logged in, check BYOK
+  if (userId) {
+    const hasByok = await prisma.apiKey.findFirst({
+      where: {
+        userId,
+        scope: "BYOK",
+        is_active: true,
+      },
+      select: { id: true },
+    });
+
+    // 2️⃣ BYOK users → NO LIMITS
+    if (hasByok) {
+      return null; // 👈 important
+    }
+  }
+
+  const hasProPlan = has({ plan: "pro" })
 
   const usageTracker = new RateLimiterPrisma({
     storeClient: prisma,
@@ -29,7 +47,7 @@ export async function consumeCredits() {
   }
 
   const usageTracker = await getUsageTracker();
-  const result = await usageTracker.consume(userId, GENERATION_COST);
+  const result = await usageTracker?.consume(userId, GENERATION_COST);
   return result;
 }
 
@@ -40,6 +58,36 @@ export async function getUsageStatus() {
   }
 
   const usageTracker = await getUsageTracker();
-  const result = await usageTracker.get(userId);
+  const result = await usageTracker?.get(userId);
   return result;
+}
+
+
+export async function getUserAccess() {
+  const { userId, has } = await auth();
+
+  if (!userId) {
+    return { isByok: false, hasProPlan: false };
+  }
+
+  const hasByok = await prisma.apiKey.findFirst({
+    where: {
+      userId,
+      scope: "BYOK",
+      is_active: true,
+    },
+    select: { id: true },
+  });
+
+  if (hasByok) {
+    return {
+      isByok: true,
+      hasProPlan: false, // ignored when BYOK
+    };
+  }
+
+  return {
+    isByok: false,
+    hasProPlan: has({ plan: "pro" }),
+  };
 }

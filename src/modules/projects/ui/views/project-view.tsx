@@ -17,14 +17,49 @@ import FileExplorer from "@/components/file-explorer";
 import UserControl from "@/components/user-control";
 import { useAuth } from "@clerk/nextjs";
 import { ErrorBoundary } from "react-error-boundary";
+import { getUserAccess } from "@/lib/usage";
+import { useUserAccess } from "@/hooks/user-access";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   projectId: string;
 }
 
+const ProjectHeaderSkeleton = () => {
+  return (
+    <div className="flex items-center gap-4 p-4">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-40" />
+      </div>
+    </div>
+  );
+};
+
+const MessageContainerSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      {/* user message */}
+      <div className="flex items-start gap-3 justify-end">
+        <Skeleton className="h-12 w-1/2 rounded-lg" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+
+      {/* assistant message */}
+      <div className="flex items-start gap-3">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-16 w-2/3 rounded-lg" />
+      </div>
+    </div>
+  );
+};
+
 const ProjectView = ({ projectId }: Props) => {
-  const { has } = useAuth();
-  const hasProPlan = has?.({ plan: "pro" });
+  // const { has } = useAuth();
+  // const hasProPlan = has?.({ plan: "pro" });
+
+  const { isByok, hasProPlan, isLoading } = useUserAccess();
+
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
   const [tabState, setTabState] = useState<"code" | "preview">("preview");
   //   const trpc = useTRPC();
@@ -44,13 +79,13 @@ const ProjectView = ({ projectId }: Props) => {
           className="flex flex-col min-h-0"
         >
           <ErrorBoundary fallback={<p>Error loading project header</p>}>
-            <Suspense fallback={<div>Loading project...</div>}>
+            <Suspense fallback={<ProjectHeaderSkeleton />}>
               <ProjectHeader projectId={projectId} />
             </Suspense>
           </ErrorBoundary>
 
           <ErrorBoundary fallback={<p>Error loading messages</p>}>
-            <Suspense fallback={<div>Loading messages...</div>}>
+            <Suspense fallback={<MessageContainerSkeleton />}>
               <MessageContainer
                 projectId={projectId}
                 activeFragment={activeFragment}
@@ -77,12 +112,18 @@ const ProjectView = ({ projectId }: Props) => {
                 </TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-x-2">
-                {!hasProPlan && (
-                  <Button asChild size="sm" variant="tertiary">
-                    <Link href="/pricing">
-                      <CrownIcon /> <span>Upgrade</span>
-                    </Link>
-                  </Button>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  !isByok &&
+                  !hasProPlan && (
+                    <Button asChild size="sm" variant="tertiary">
+                      <Link href="/pricing">
+                        <CrownIcon className="mr-1 h-4 w-4" />
+                        <span>Upgrade</span>
+                      </Link>
+                    </Button>
+                  )
                 )}
                 <UserControl />
               </div>

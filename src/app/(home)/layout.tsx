@@ -1,3 +1,4 @@
+import { ByokBillingGuard } from "@/components/billing-guard";
 import Navbar from "@/modules/home/ui/components/navbar";
 import React from "react";
 interface Props {
@@ -15,6 +16,7 @@ const Layout = ({ children }: Props) => {
       />
       <div className="relative z-10 flex-1 flex flex-col px-4 pb-4 w-full">
         {children}
+        <ByokBillingGuard/>
       </div>
     </main>
   );

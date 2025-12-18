@@ -14,18 +14,55 @@ import z from "zod";
 import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { prisma } from "@/lib/prisma";
 import { SANBOX_TIMEOUT } from "@/lib/constant";
+import { resolveApiKey } from "@/lib/utils.server";
 
 interface AgentState {
   summary: string;
   files: { [path: string]: string };
 }
 
-const MAX_SAFE_TOKENS = 1000;
+type ModelParams = {
+  model: string;
+  apiKey: string;
+  baseUrl?: string;
+  defaultParameters?: Record<string, unknown>;
+};
+
+const MAX_PROMPT_SAFE_TOKENS = 1000;
+const MAX_TEXT_GENERATION_SAFE_TOKENS = 800;
+
+function getModelParams(provider: string, apiKey: string, type: "RESPONSE_PROMPT" | "PROMPT" | "FRAGMENT_TITLE_PROMPT"): ModelParams  {
+  let modelParams = {}
+  if (provider === "OPENAI") {
+    modelParams = {
+      model: type === "PROMPT" ? "gpt-4.1" : "gpt-4o",
+      defaultParameters: {
+        temperature: 0.1,
+      },
+      apiKey: apiKey,
+    };
+  }else if (provider === "OPENROUTER") {
+    modelParams = {
+      model: type === "PROMPT" ? "gpt-4o" : "gpt-oss-120b",
+      defaultParameters: {
+        temperature: 0.1,
+        max_completion_tokens: type === "PROMPT" ? MAX_PROMPT_SAFE_TOKENS : MAX_TEXT_GENERATION_SAFE_TOKENS,
+      },
+      baseUrl: "https://openrouter.ai/api/v1",
+      apiKey: apiKey,
+    };
+  }
+
+  return modelParams as ModelParams;
+}
 
 export const codeAgentFunction = inngest.createFunction(
   { id: "code-agent" },
   { event: "code-agent/run" },
   async ({ event, step }) => {
+    const { provider, apiKey } = await resolveApiKey(event.data.userId);
+    console.log(provider, apiKey);
+
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("buildlyio-nextjs-test");
       await sandbox.setTimeout(SANBOX_TIMEOUT);
@@ -74,16 +111,7 @@ export const codeAgentFunction = inngest.createFunction(
       name: "code-agent",
       description: "An expert coding agent",
       system: PROMPT,
-      model: openai({
-        model: "gpt-4o",
-        // defaultParameters: { temperature: 0.5 },
-        // model: "gpt-oss-120b",
-        baseUrl: "https://openrouter.ai/api/v1",
-        defaultParameters: {
-          temperature: 0.1,
-          max_completion_tokens: MAX_SAFE_TOKENS,
-        },
-      }),
+      model: openai(getModelParams(provider, apiKey, "PROMPT")),
       tools: [
         createTool({
           name: "terminal",
@@ -219,28 +247,14 @@ export const codeAgentFunction = inngest.createFunction(
       name: "fragment-title-generator",
       description: "Generates a title for a fragment",
       system: FRAGMENT_TITLE_PROMPT,
-      model: openai({
-        model: "gpt-oss-120b",
-        baseUrl: "https://openrouter.ai/api/v1",
-        defaultParameters: {
-          temperature: 0.1,
-          max_completion_tokens: 800,
-        },
-      }),
+      model: openai(getModelParams(provider, apiKey, "FRAGMENT_TITLE_PROMPT")),
     });
 
     const responseGenerator = createAgent<AgentState>({
       name: "response-generator",
       description: "A summary response generator",
       system: RESPONSE_PROMPT,
-      model: openai({
-        model: "gpt-oss-120b",
-        baseUrl: "https://openrouter.ai/api/v1",
-        defaultParameters: {
-          temperature: 0.1,
-          max_completion_tokens: 800,
-        },
-      }),
+      model: openai(getModelParams(provider, apiKey, "RESPONSE_PROMPT")),
     });
 
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
