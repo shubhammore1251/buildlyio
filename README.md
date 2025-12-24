@@ -6,7 +6,7 @@ An experimental AI-driven website builder built to understand **how AI agents ca
 
 This project focuses on learning how a **Next.js application can directly interact with LLMs** and background agents to generate, execute, and preview code.
 
-- ***LIVE URL:*** 
+- ***LIVE URL:*** https://buildlyio.shubhammoredev.com
 
 ---
 
