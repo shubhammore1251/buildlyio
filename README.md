@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Buildly.io
 
-## Getting Started
+![Logo](./public/image.png)
 
-First, run the development server:
+An experimental AI-driven website builder built to understand **how AI agents can be designed and orchestrated using JavaScript/TypeScript**, without relying on Python-based agent frameworks.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This project focuses on learning how a **Next.js application can directly interact with LLMs** and background agents to generate, execute, and preview code.
+
+- ***LIVE URL:*** 
+
+---
+
+## 🧠 Project Intent
+
+Buildly.io is **not** intended to compete with production-grade tools like Lovable or V0.
+
+The goal of this project is to:
+- Explore AI agent workflows using **Inngest**
+- Understand how **LLMs (OpenAI)** can be connected to a modern web stack
+- Learn how to safely **execute generated code** using sandbox environments
+- Build an end-to-end AI workflow using **only JavaScript / TypeScript**
+
+---
+
+## ✨ Features
+
+- Prompt-based frontend code generation
+- Background agent orchestration using Inngest
+- Secure sandboxed execution using E2B
+- Live preview of generated code
+- Iterative prompt → generate → preview workflow
+- Clean, modern UI for experimentation
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- Next.js 15
+- Tailwind CSS
+- shadcn/ui
+
+### Backend / Agents
+- Next.js API routes
+- Inngest (agent workflows & background jobs)
+- OpenAI (LLM-based code generation)
+
+### Tools / Infra
+- E2B Sandbox (secure code execution)
+- Prisma
+- Inngest
+- TRPC
+- TANSTACK
+- PostgreSQL
+- Clerk (authentication)
+- Vercel / VPS deployment
+
+---
+
+## 📦 Requirements
+
+The following API keys are required to run the project:
+
+- **OpenAI API Key** – used for generating frontend code via LLMs
+- **E2B Sandbox API Key** – used for running generated code securely in isolated environments
+
+---
+
+## Environment Varirables (.env)
+-  **OpenAI:** Used by the agent for code generation
+```
+OPENAI_API_KEY=sk-xxxx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **E2B Sandbox**: Used for executing generated code in isolated sandboxes
+```
+E2B_SANDBOX_API_KEY=e2b_xxxx
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Inngest**: Used for triggering and securing agent workflows in production
+```
+INNGEST_EVENT_KEY=xxxx
+INNGEST_SIGNING_KEY=xxxx
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Database**: Prisma database connection
+```
+DATABASE_URL=postgresql://...
+```
 
-## Learn More
+- ***Authentication (Clerk)**: For User authentication
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_xxxx
+CLERK_SECRET_KEY=sk_xxxx
 
-To learn more about Next.js, take a look at the following resources:
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/"
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- ***Security***: 
+```
+CRYPTO_SECRET_KEY="" # Used for encryption / hashing
+ADMIN_SECRET="" # Used for admin-only access
+```
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ▶️ Run Locally
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git clone https://github.com/your-username/buildly.io
+
+cd buildly.io
+
+npm install
+
+# generate prisma client
+npx prisma generate
+
+# (optional) run migrations
+npx prisma migrate dev
+
+# start inngest local server
+npx inngest-cli@latest dev
+
+# start next.js app
+npm run dev
+```
+
+---
+
+## ⚙️ Working Mechanism
+
+```text
+User Prompt
+   ↓
+Next.js App
+   ↓
+Inngest Agent (orchestration)
+   ↓
+OpenAI (code generation)
+   ↓
+E2B Sandbox (execute code)
+   ↓
+Live Preview URL
