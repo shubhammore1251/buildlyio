@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     await prisma.apiKey.create({
       data: {
         userId: null,
-        provider: "OPENROUTER",
+        provider: "OPENAI",
         scope: "DEMO",
         encrypted_key: encryptedKey,
         is_active: true,

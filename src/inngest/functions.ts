@@ -60,7 +60,9 @@ export const codeAgentFunction = inngest.createFunction(
   { id: "code-agent" },
   { event: "code-agent/run" },
   async ({ event, step }) => {
+    console.log("Code agent function running...");
     const { provider, apiKey } = await resolveApiKey(event.data.userId);
+    console.log("Using provider:", provider);
 
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("buildlyio-nextjs-test");
