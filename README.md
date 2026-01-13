@@ -54,6 +54,7 @@ The goal of this project is to:
 - PostgreSQL
 - Clerk (authentication)
 - Vercel / VPS deployment
+- Docker
 
 ---
 
