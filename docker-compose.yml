@@ -11,15 +11,21 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - internal
 
   adminer:
-    image: adminer
+    image: adminer:latest
     container_name: buildly_adminer
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"   # 🔐 Bind only to localhost
+    networks:
+      - internal
 
 volumes:
   postgres_data:
+
+networks:
+  internal:
+    driver: bridge
