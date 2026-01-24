@@ -11,6 +11,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"   # 🔐 Only accessible inside VPS
     networks:
       - internal
 
@@ -19,7 +21,7 @@ services:
     container_name: buildly_adminer
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8081:8080"   # 🔐 Bind only to localhost
+      - "127.0.0.1:8081:8080"    # 🔐 Bind only to localhost
     networks:
       - internal
 
