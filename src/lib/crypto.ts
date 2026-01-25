@@ -3,37 +3,51 @@ import "server-only";
 import crypto from "crypto";
 
 const ALGO = "aes-256-gcm";
+const IV_LENGTH = 12;
+const TAG_LENGTH = 16;
 
-// derive a fixed 32-byte key from ANY string
+if (!process.env.CRYPTO_SECRET_KEY) {
+  throw new Error("CRYPTO_SECRET_KEY is not defined");
+}
+
+// Derive 32-byte key
 const KEY = crypto
   .createHash("sha256")
-  .update(process.env.CRYPTO_SECRET_KEY!)
-  .digest(); // 32 bytes
+  .update(process.env.CRYPTO_SECRET_KEY)
+  .digest();
 
-export function encrypt(text: string): string {
-  const iv = crypto.randomBytes(12); // required for gcm
+export function encrypt(plainText: string): string {
+  const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGO, KEY, iv);
 
   const encrypted = Buffer.concat([
-    cipher.update(text, "utf8"),
+    cipher.update(Buffer.from(plainText, "utf8")),
     cipher.final(),
   ]);
 
   const tag = cipher.getAuthTag();
 
-  // iv (12) + tag (16) + ciphertext
   return Buffer.concat([iv, tag, encrypted]).toString("base64");
 }
 
 export function decrypt(payload: string): string {
   const data = Buffer.from(payload, "base64");
 
-  const iv = data.subarray(0, 12);
-  const tag = data.subarray(12, 28);
-  const encrypted = data.subarray(28);
+  if (data.length < IV_LENGTH + TAG_LENGTH) {
+    throw new Error("Invalid encrypted payload");
+  }
+
+  const iv = data.subarray(0, IV_LENGTH);
+  const tag = data.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
+  const encrypted = data.subarray(IV_LENGTH + TAG_LENGTH);
 
   const decipher = crypto.createDecipheriv(ALGO, KEY, iv);
   decipher.setAuthTag(tag);
 
-  return decipher.update(encrypted, undefined, "utf8") + decipher.final("utf8");
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]);
+
+  return decrypted.toString("utf8");
 }
