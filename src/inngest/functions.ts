@@ -57,8 +57,10 @@ function getModelParams(provider: string, apiKey: string, type: "RESPONSE_PROMPT
 }
 
 export const codeAgentFunction = inngest.createFunction(
-  { id: "code-agent" },
-  { event: "code-agent/run" },
+  {
+    id: "code-agent",
+    triggers: [{ event: "code-agent/run" }],
+  },
   async ({ event, step }) => {
     console.log("Code agent function running...");
     const { provider, apiKey } = await resolveApiKey(event.data.userId);
