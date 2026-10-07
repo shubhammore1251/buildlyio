@@ -31,25 +31,41 @@ type ModelParams = {
 const MAX_PROMPT_SAFE_TOKENS = 1000;
 const MAX_TEXT_GENERATION_SAFE_TOKENS = 800;
 
-function getModelParams(provider: string, apiKey: string, type: "RESPONSE_PROMPT" | "PROMPT" | "FRAGMENT_TITLE_PROMPT"): ModelParams  {
-  let modelParams = {}
+function getModelParams(
+  provider: string,
+  apiKey: string,
+  type: "RESPONSE_PROMPT" | "PROMPT" | "FRAGMENT_TITLE_PROMPT",
+): ModelParams {
+  let modelParams = {};
+
   if (provider === "OPENAI") {
     modelParams = {
-      model: type === "PROMPT" ? "gpt-4.1" : "gpt-4o",
+      model: "gpt-5-nano",
       defaultParameters: {
-        temperature: 0.1,
+        reasoning_effort: "minimal",
+        verbosity: "low",
+        max_output_tokens:
+          type === "PROMPT"
+            ? MAX_PROMPT_SAFE_TOKENS
+            : MAX_TEXT_GENERATION_SAFE_TOKENS,
       },
-      apiKey: apiKey,
+      apiKey,
     };
-  }else if (provider === "OPENROUTER") {
+  } else if (provider === "OPENROUTER") {
     modelParams = {
-      model: type === "PROMPT" ? "gpt-4o" : "gpt-oss-120b",
+      model:
+        type === "PROMPT"
+          ? "gpt-4o"
+          : "gpt-oss-120b",
       defaultParameters: {
         temperature: 0.1,
-        max_completion_tokens: type === "PROMPT" ? MAX_PROMPT_SAFE_TOKENS : MAX_TEXT_GENERATION_SAFE_TOKENS,
+        max_completion_tokens:
+          type === "PROMPT"
+            ? MAX_PROMPT_SAFE_TOKENS
+            : MAX_TEXT_GENERATION_SAFE_TOKENS,
       },
       baseUrl: "https://openrouter.ai/api/v1",
-      apiKey: apiKey,
+      apiKey,
     };
   }
 
