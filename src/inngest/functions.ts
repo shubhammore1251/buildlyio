@@ -28,11 +28,11 @@ type ModelParams = {
   defaultParameters?: Record<string, unknown>;
 };
 
-const MAX_PROMPT_SAFE_TOKENS = 1000;
+const MAX_PROMPT_SAFE_TOKENS = 6000;
 const MAX_TEXT_GENERATION_SAFE_TOKENS = 800;
 
 //change open ai models time to time by checking the latest open ai charges
-//old models are charged higher
+//old models are charging higher
 function getModelParams(
   provider: string,
   apiKey: string,
@@ -44,16 +44,16 @@ function getModelParams(
     modelParams = {
       model: "gpt-5-nano",
       defaultParameters: {
-        temperature: 0.1,
+        max_completion_tokens:
+          type === "PROMPT"
+            ? MAX_PROMPT_SAFE_TOKENS
+            : MAX_TEXT_GENERATION_SAFE_TOKENS,
       },
       apiKey,
     };
   } else if (provider === "OPENROUTER") {
     modelParams = {
-      model:
-        type === "PROMPT"
-          ? "gpt-4o"
-          : "gpt-oss-120b",
+      model: type === "PROMPT" ? "gpt-4o" : "gpt-oss-120b",
       defaultParameters: {
         temperature: 0.1,
         max_completion_tokens:
@@ -108,7 +108,7 @@ export const codeAgentFunction = inngest.createFunction(
         }
 
         return formattedMessages.reverse();
-      }
+      },
     );
 
     const state = createState<AgentState>(
@@ -118,7 +118,7 @@ export const codeAgentFunction = inngest.createFunction(
       },
       {
         messages: previousMessages,
-      }
+      },
     );
 
     //To Do: In user profile we will link his open ai key if he has addded and if addedd then we
@@ -153,7 +153,7 @@ export const codeAgentFunction = inngest.createFunction(
                 return result.stdout;
               } catch (error) {
                 console.log(
-                  `Command failed: ${error} \n stdout: ${buffers.stdout} \n stderr: ${buffers.stderr}`
+                  `Command failed: ${error} \n stdout: ${buffers.stdout} \n stderr: ${buffers.stderr}`,
                 );
                 return `Command failed: ${error} \n stdout: ${buffers.stdout} \n stderr: ${buffers.stderr}`;
               }
@@ -168,12 +168,12 @@ export const codeAgentFunction = inngest.createFunction(
               z.object({
                 path: z.string(),
                 content: z.string(),
-              })
+              }),
             ),
           }),
           handler: async (
             { files },
-            { step, network }: Tool.Options<AgentState>
+            { step, network }: Tool.Options<AgentState>,
           ) => {
             const newFiles = await step?.run(
               "createOrUpdateFiles",
@@ -190,7 +190,7 @@ export const codeAgentFunction = inngest.createFunction(
                 } catch (error) {
                   return `Error: ${error}`;
                 }
-              }
+              },
             );
 
             if (typeof newFiles === "object") {
@@ -274,10 +274,10 @@ export const codeAgentFunction = inngest.createFunction(
     });
 
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
-      result.state.data.summary
+      result.state.data.summary,
     );
     const { output: responseOutput } = await responseGenerator.run(
-      result.state.data.summary
+      result.state.data.summary,
     );
 
     const generateFragmentTitle = () => {
@@ -349,5 +349,5 @@ export const codeAgentFunction = inngest.createFunction(
       files: result.state.data.files,
       summary: generateResponse(),
     };
-  }
+  },
 );
