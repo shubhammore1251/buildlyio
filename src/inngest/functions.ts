@@ -42,12 +42,7 @@ function getModelParams(
     modelParams = {
       model: "gpt-5-nano",
       defaultParameters: {
-        reasoning_effort: "minimal",
-        verbosity: "low",
-        max_output_tokens:
-          type === "PROMPT"
-            ? MAX_PROMPT_SAFE_TOKENS
-            : MAX_TEXT_GENERATION_SAFE_TOKENS,
+        temperature: 0.1,
       },
       apiKey,
     };
