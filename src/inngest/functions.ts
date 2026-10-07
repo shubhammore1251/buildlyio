@@ -31,6 +31,8 @@ type ModelParams = {
 const MAX_PROMPT_SAFE_TOKENS = 1000;
 const MAX_TEXT_GENERATION_SAFE_TOKENS = 800;
 
+//change open ai models time to time by checking the latest open ai charges
+//old models are charged higher
 function getModelParams(
   provider: string,
   apiKey: string,
